@@ -1,6 +1,6 @@
 const wordsDashboard = document.querySelector(".words-dashboard");
 
-let count = 1;
+let count = 0;
 for (let i = 0; i < 30; i++) {
   const letterDiv = document.createElement("div");
   letterDiv.classList.add("letter");
@@ -8,24 +8,35 @@ for (let i = 0; i < 30; i++) {
 }
 
 document.onkeyup = function (e) {
+  let limit = false;
   if (!isLetter(e.key) && e.key !== "Backspace") return;
   const letterSpaces = document.querySelectorAll(".letter");
-  if (count > 5) {
-    count = 5;
+  if (count >= 5) {
+    limit = !limit;
+    count--;
   }
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i <= count; i++) {
     if (e.key === "Backspace") {
-      count--;
-      if (count < 1) count = 0;
+      console.log(count, "dentro");
+      if (!limit) {
+        count--;
+        limit = !limit;
+      }
+      if (count < 0) count = 0;
       letterSpaces[count].textContent = null;
       return;
-    } else if (!letterSpaces[i].textContent) {
-      letterSpaces[i].textContent = e.key.toUpperCase();
+    } else if (!letterSpaces[count].textContent) {
+      letterSpaces[count].textContent = e.key.toUpperCase();
     }
   }
   count++;
+  console.log(count, "fora");
 };
 
 function isLetter(letter) {
   return /^[a-zA-Z]$/.test(letter);
+}
+
+function submitWord(letterSpaces) {
+  alert("eoq");
 }
