@@ -16,3 +16,21 @@ header {
   border-bottom: 2px solid #232;
   margin-bottom: 6%;
 }
+.words-dashboard {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.words-dashboard div {
+  width: 50px;
+  height: 50px;
+  margin: 0 5% 5% 0;
+  border: 2px solid #232;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
