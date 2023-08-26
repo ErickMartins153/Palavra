@@ -52,6 +52,7 @@ async function init() {
     let wrongPlaceValue = [];
     let wrongPlace = {};
     let wrongLetters = [];
+    todaysWord = "TESTA";
     if (count < 5) return;
     if (word === todaysWord && !won) {
       won = !won;
@@ -60,29 +61,35 @@ async function init() {
     let wordSplit = word.split("");
     let todaysWordSplit = todaysWord.split("");
     let commonLetters = todaysWordSplit.filter((letter) => {
-      if (wordSplit.indexOf(letter) === todaysWordSplit.indexOf(letter)) {
-        correctPlace[wordSplit.indexOf(letter)] = letter;
-      }
       return wordSplit.includes(letter);
     });
-    wrongLetters = wordSplit.filter(
-      (letter) => !commonLetters.includes(letter)
-    );
-
-    wrongPlaceValue = commonLetters.filter((letter) => {
-      return (wrongPlaceValue = !Object.values(correctPlace).includes(letter));
-    });
-    for (let i = 0; i < wrongPlaceValue.length; i++) {
-      wrongPlace[wordSplit.indexOf(wrongPlaceValue[i])] = wrongPlaceValue[i];
+    for (let i = 0; i < wordSplit.length; i++) {
+      if (wordSplit[i] === todaysWordSplit[i]) {
+        correctPlace[i] = wordSplit[i];
+      }
+      wrongLetters = wordSplit.filter(
+        (letter) => !commonLetters.includes(letter)
+      );
+      wrongPlaceValue = commonLetters.filter((letter) => {
+        return (wrongPlaceValue =
+          !Object.values(correctPlace).includes(letter));
+      });
     }
-
-    handleLetters(commonLetters, correctPlace, wrongPlace);
+    for (let i = 0; i < wordSplit.length; i++) {
+      let indexFirstOccurrence = wordSplit.indexOf(wrongPlaceValue[i]);
+      if (indexFirstOccurrence !== -1) {
+        wrongPlace[indexFirstOccurrence] = wordSplit[indexFirstOccurrence];
+        wordSplit.splice(indexFirstOccurrence, 1, null);
+      }
+    }
+    handleLetters(correctPlace, wrongPlace);
   }
-
-  function handleLetters(commonLetters, correctPlace, wrongPlace) {
-    const keys = Object.keys(correctPlace);
-    for (let i = 0; i < keys.length; i++) {
-      document.querySelector(`.element-${keys[i]}`).classList.add("correct");
+  function handleLetters(correctPlace, wrongPlace) {
+    const correctPlaceKeys = Object.keys(correctPlace);
+    for (let i = 0; i < correctPlaceKeys.length; i++) {
+      document
+        .querySelector(`.element-${correctPlaceKeys[i]}`)
+        .classList.add("correct");
     }
 
     async function validateWord() {
