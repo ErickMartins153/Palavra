@@ -67,14 +67,21 @@ async function init() {
       if (wordSplit[i] === todaysWordSplit[i]) {
         correctPlace[i] = wordSplit[i];
       }
-      wrongLetters = wordSplit.filter(
+      wrongLetters = commonLetters.filter(
         (letter) => !commonLetters.includes(letter)
       );
       wrongPlaceValue = commonLetters.filter((letter) => {
-        return (wrongPlaceValue =
-          !Object.values(correctPlace).includes(letter));
+        if (
+          commonLetters.indexOf(letter) !== commonLetters.lastIndexOf(letter)
+        ) {
+          return +Object.keys(correctPlace) === wordSplit.indexOf(letter)
+            ? wordSplit.lastIndexOf(letter)
+            : wordSplit.indexOf(letter);
+        }
+        return commonLetters;
       });
     }
+
     for (let i = 0; i < wordSplit.length; i++) {
       let indexFirstOccurrence = wordSplit.indexOf(wrongPlaceValue[i]);
       if (indexFirstOccurrence !== -1) {
@@ -86,7 +93,20 @@ async function init() {
   }
   function handleLetters(correctPlace, wrongPlace) {
     const correctPlaceKeys = Object.keys(correctPlace);
+    const wrongplaceKeys = Object.keys(wrongPlace);
+    const letterDivs = document.querySelectorAll(".letter");
+    for (let i = 0; i < 5; i++) {
+      letterDivs[i].classList.remove("correct", "wrong", "wrong-place");
+    }
+    for (let i = 0; i < wrongplaceKeys.length; i++) {
+      document
+        .querySelector(`.element-${wrongplaceKeys[i]}`)
+        .classList.add("wrong-place");
+    }
     for (let i = 0; i < correctPlaceKeys.length; i++) {
+      document
+        .querySelector(`.element-${correctPlaceKeys[i]}`)
+        .classList.remove("wrong-place");
       document
         .querySelector(`.element-${correctPlaceKeys[i]}`)
         .classList.add("correct");
