@@ -12,14 +12,44 @@ async function init() {
   let word = "";
   let count = 0;
   let won = false;
+  let isValid = null;
+  let currentRow = 0;
   const promise = await fetch(dailyWordAPI);
   const { word: dailyWord } = await promise.json();
   let todaysWord = dailyWord.toUpperCase();
 
+  async function validateWord(userWord) {
+    const promiseValidation = await fetch(validateWordAPI, {
+      method: "POST",
+      body: JSON.stringify({ word: userWord }),
+    });
+    const { validWord } = await promiseValidation.json();
+
+    if (validWord) {
+      setvalid(true);
+    } else {
+      setvalid(false);
+    }
+
+    submitWord(userWord);
+  }
+  function setvalid(state) {
+    isValid = state;
+    for (let i = 0; i < word.length; i++) {
+      if (!isValid) {
+        letterSpaces[i].classList.add("invalid");
+      } else {
+        letterSpaces[i].classList.remove("invalid");
+      }
+    }
+  }
   document.onkeyup = function (e) {
     let limit = false;
     if (!isLetter(e.key) && e.key !== "Backspace" && e.key !== "Enter") return;
-    if (e.key === "Enter") return submitWord();
+    if (e.key === "Enter") {
+      if (count !== 5) return;
+      validateWord(word);
+    }
     if (count >= 5) {
       limit = !limit;
       count--;
@@ -48,15 +78,19 @@ async function init() {
   }
 
   function submitWord() {
+    if (letterSpaces[0].classList.contains("invalid")) {
+      for (let i = 0; i < letterSpaces.length; i++) {
+        letterSpaces[i].classList.remove("correct", "wrong-place");
+      }
+      return;
+    }
     let correctPlace = {};
     let wrongPlaceValue = [];
     let wrongPlace = {};
-    let wrongLetters = [];
-    todaysWord = "TESTA";
     if (count < 5) return;
     if (word === todaysWord && !won) {
       won = !won;
-      return alert("You won!");
+      alert("You won!");
     }
     let wordSplit = word.split("");
     let todaysWordSplit = todaysWord.split("");
@@ -101,20 +135,18 @@ async function init() {
     for (let i = 0; i < wrongplaceKeys.length; i++) {
       document
         .querySelector(`.element-${wrongplaceKeys[i]}`)
+        .classList.remove("invalid", "correct");
+      document
+        .querySelector(`.element-${wrongplaceKeys[i]}`)
         .classList.add("wrong-place");
     }
     for (let i = 0; i < correctPlaceKeys.length; i++) {
       document
         .querySelector(`.element-${correctPlaceKeys[i]}`)
-        .classList.remove("wrong-place");
+        .classList.remove("wrong-place", "invalid");
       document
         .querySelector(`.element-${correctPlaceKeys[i]}`)
         .classList.add("correct");
-    }
-
-    async function validateWord() {
-      const promise = await fetch(validateWordAPI);
-      const processedResponse = await promise.json();
     }
   }
 }
