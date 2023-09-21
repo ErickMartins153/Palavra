@@ -9,10 +9,10 @@ async function init() {
   const resultText = document.createElement("div");
   resultText.classList.add("result");
   resultText.textContent = "Result";
-  wordsDashboard.appendChild(resultText);
+  document.body.appendChild(resultText);
 
   const letterSpaces = document.querySelectorAll(".letter");
-  const dailyWordAPI = "https://words.dev-apis.com/word-of-the-day";
+  const dailyWordAPI = "https://words.dev-apis.com/word-of-the-day?random=1";
   const validateWordAPI = "https://words.dev-apis.com/validate-word";
   let word = "";
   let count = 0;
@@ -101,10 +101,12 @@ async function init() {
     if (word === todaysWord && !won) {
       won = !won;
       resultText.textContent = "You Won!";
+      playAgain();
     }
     if (count + currentRow >= letterSpaces.length && !lose && !won) {
       lose = true;
-      resultText.textContent = "Better luck next time!";
+      resultText.textContent = `You Lose! The word was: ${todaysWord}`;
+      playAgain();
     }
     let wordSplit = word.split("");
     let todaysWordSplit = todaysWord.split("");
@@ -167,6 +169,17 @@ async function init() {
     count = 0;
     word = "";
     limit = false;
+  }
+
+  function playAgain() {
+    const playAgainButton = document.createElement("button");
+    playAgainButton.textContent = "Play Again";
+    document.body.appendChild(playAgainButton);
+    playAgainButton.onclick = refreshPage;
+  }
+
+  function refreshPage() {
+    return location.reload();
   }
 }
 init();
