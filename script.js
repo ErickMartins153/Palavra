@@ -6,12 +6,18 @@ async function init() {
     letterDiv.classList.add(`element-${i}`);
     wordsDashboard.appendChild(letterDiv);
   }
+  const resultText = document.createElement("div");
+  resultText.classList.add("result");
+  resultText.textContent = "Result";
+  wordsDashboard.appendChild(resultText);
+
   const letterSpaces = document.querySelectorAll(".letter");
   const dailyWordAPI = "https://words.dev-apis.com/word-of-the-day";
   const validateWordAPI = "https://words.dev-apis.com/validate-word";
   let word = "";
   let count = 0;
   let won = false;
+  let lose = false;
   let isValid = null;
   let currentRow = 0;
   const promise = await fetch(dailyWordAPI);
@@ -24,7 +30,6 @@ async function init() {
       body: JSON.stringify({ word: userWord }),
     });
     const { validWord } = await promiseValidation.json();
-
     if (validWord) {
       setvalid(true);
     } else {
@@ -37,24 +42,26 @@ async function init() {
     isValid = state;
     for (let i = 0; i < word.length; i++) {
       if (!isValid) {
-        letterSpaces[i].classList.add("invalid");
+        letterSpaces[i + currentRow].classList.add("invalid");
       } else {
-        letterSpaces[i].classList.remove("invalid");
+        letterSpaces[i + currentRow].classList.remove("invalid");
       }
     }
   }
   document.onkeyup = function (e) {
     let limit = false;
+    if (won || lose) return;
     if (!isLetter(e.key) && e.key !== "Backspace" && e.key !== "Enter") return;
     if (e.key === "Enter") {
       if (count !== 5) return;
+
       validateWord(word);
     }
     if (count >= 5) {
       limit = !limit;
       count--;
     }
-    for (let i = 0; i <= count; i++) {
+    for (let i = currentRow; i <= count + currentRow; i++) {
       let letter = e.key.toUpperCase();
       if (e.key === "Backspace") {
         if (!limit) {
@@ -62,11 +69,11 @@ async function init() {
           limit = !limit;
         }
         if (count < 0) count = 0;
-        letterSpaces[count].textContent = null;
+        letterSpaces[count + currentRow].textContent = null;
         word = word.slice(0, word.length - 1);
         return;
-      } else if (!letterSpaces[count].textContent) {
-        letterSpaces[count].textContent = letter;
+      } else if (!letterSpaces[count + currentRow].textContent) {
+        letterSpaces[count + currentRow].textContent = letter;
         word += letter;
       }
     }
@@ -78,8 +85,8 @@ async function init() {
   }
 
   function submitWord() {
-    if (letterSpaces[0].classList.contains("invalid")) {
-      for (let i = 0; i < letterSpaces.length; i++) {
+    if (letterSpaces[currentRow].classList.contains("invalid")) {
+      for (let i = currentRow; i < count + currentRow; i++) {
         letterSpaces[i].classList.remove("correct", "wrong-place");
       }
       return;
@@ -90,7 +97,11 @@ async function init() {
     if (count < 5) return;
     if (word === todaysWord && !won) {
       won = !won;
-      alert("You won!");
+      resultText.textContent = "You Won!";
+    }
+    if (count + currentRow >= letterSpaces.length && !lose && !won) {
+      lose = true;
+      resultText.textContent = "Better luck next time!";
     }
     let wordSplit = word.split("");
     let todaysWordSplit = todaysWord.split("");
@@ -99,18 +110,16 @@ async function init() {
     });
     for (let i = 0; i < wordSplit.length; i++) {
       if (wordSplit[i] === todaysWordSplit[i]) {
-        correctPlace[i] = wordSplit[i];
+        correctPlace[i + currentRow] = wordSplit[i];
       }
-      wrongLetters = commonLetters.filter(
-        (letter) => !commonLetters.includes(letter)
-      );
+
       wrongPlaceValue = commonLetters.filter((letter) => {
         if (
           commonLetters.indexOf(letter) !== commonLetters.lastIndexOf(letter)
         ) {
           return +Object.keys(correctPlace) === wordSplit.indexOf(letter)
-            ? wordSplit.lastIndexOf(letter)
-            : wordSplit.indexOf(letter);
+            ? wordSplit.lastIndexOf(letter) + currentRow
+            : wordSplit.indexOf(letter) + currentRow;
         }
         return commonLetters;
       });
@@ -119,19 +128,22 @@ async function init() {
     for (let i = 0; i < wordSplit.length; i++) {
       let indexFirstOccurrence = wordSplit.indexOf(wrongPlaceValue[i]);
       if (indexFirstOccurrence !== -1) {
-        wrongPlace[indexFirstOccurrence] = wordSplit[indexFirstOccurrence];
+        wrongPlace[indexFirstOccurrence + currentRow] =
+          wordSplit[indexFirstOccurrence];
         wordSplit.splice(indexFirstOccurrence, 1, null);
       }
     }
+
     handleLetters(correctPlace, wrongPlace);
   }
   function handleLetters(correctPlace, wrongPlace) {
     const correctPlaceKeys = Object.keys(correctPlace);
     const wrongplaceKeys = Object.keys(wrongPlace);
     const letterDivs = document.querySelectorAll(".letter");
-    for (let i = 0; i < 5; i++) {
+    for (let i = currentRow; i < count + currentRow; i++) {
       letterDivs[i].classList.remove("correct", "wrong", "wrong-place");
     }
+
     for (let i = 0; i < wrongplaceKeys.length; i++) {
       document
         .querySelector(`.element-${wrongplaceKeys[i]}`)
@@ -148,6 +160,10 @@ async function init() {
         .querySelector(`.element-${correctPlaceKeys[i]}`)
         .classList.add("correct");
     }
+    currentRow += 5;
+    count = 0;
+    word = "";
+    limit = false;
   }
 }
 init();
