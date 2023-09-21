@@ -54,10 +54,12 @@ header {
 
 .correct {
   background-color: rgb(216, 255, 157);
+  animation: rotateXY 0.5s linear forwards;
 }
 
 .wrong-place {
   background-color: greenyellow;
+  animation: rotateX 0.5s linear forwards;
 }
 
 div.result {
@@ -66,4 +68,44 @@ div.result {
   border: 0;
   border-radius: 0;
   border-bottom: 5px solid #232;
+}
+
+.invalid {
+  animation: invalid 1s ease-in-out;
+}
+
+@keyframes invalid {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes rotateXY {
+  0% {
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+  100% {
+    transform: rotate3d(1, 1, 0, 360deg);
+  }
+}
+
+@keyframes rotateX {
+  0% {
+    transform: rotateX(0deg);
+  }
+  100% {
+    transform: rotateX(360deg);
+  }
 }

@@ -42,6 +42,10 @@ async function init() {
     isValid = state;
     for (let i = 0; i < word.length; i++) {
       if (!isValid) {
+        letterSpaces[i + currentRow].classList.remove("invalid");
+        //forces browser to notice that the class was removed and then added again
+        void letterSpaces[i + currentRow].offsetWidth;
+
         letterSpaces[i + currentRow].classList.add("invalid");
       } else {
         letterSpaces[i + currentRow].classList.remove("invalid");
@@ -54,7 +58,6 @@ async function init() {
     if (!isLetter(e.key) && e.key !== "Backspace" && e.key !== "Enter") return;
     if (e.key === "Enter") {
       if (count !== 5) return;
-
       validateWord(word);
     }
     if (count >= 5) {
