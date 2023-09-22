@@ -1,11 +1,44 @@
 async function init() {
   const wordsDashboard = document.querySelector(".words-dashboard");
+  let previousCorrect = "";
+  let previousWrong = "";
+
   for (let i = 0; i < 30; i++) {
     const letterDiv = document.createElement("div");
     letterDiv.classList.add("letter");
     letterDiv.classList.add(`element-${i}`);
+    if (!localStorage["correct"]) {
+      localStorage["correct"] = "";
+    }
+    previousCorrect = localStorage["correct"].split(" ");
+
+    if (!localStorage["wrongPlace"]) {
+      localStorage["wrongPlace"] = "";
+    }
+    previousWrong = localStorage["wrongPlace"].split(" ");
+    previousWrong = previousWrong.filter(
+      (position) => !previousCorrect.includes(position)
+    );
+    previousCorrect = previousCorrect.filter(
+      (position) => position.trim() != ""
+    );
+    if (!localStorage["words"]) {
+      localStorage["words"] = "";
+      localStorage["currentRow"] = 0;
+    } else {
+      letterDiv.textContent = localStorage["words"][i];
+    }
+    for (let j = 0; j < 30; j++) {
+      if (i === +previousCorrect[j]) {
+        letterDiv.classList.add("correct");
+      }
+      if (previousWrong[j] && i === +previousWrong[j]) {
+        letterDiv.classList.add("wrong-place");
+      }
+    }
     wordsDashboard.appendChild(letterDiv);
   }
+
   const resultText = document.createElement("div");
   resultText.classList.add("result");
   resultText.textContent = "Result";
@@ -19,10 +52,22 @@ async function init() {
   let won = false;
   let lose = false;
   let isValid = null;
-  let currentRow = 0;
-  const promise = await fetch(dailyWordAPI);
-  const { word: dailyWord } = await promise.json();
-  let todaysWord = dailyWord.toUpperCase();
+  let todaysWord = "";
+  let currentRow = +localStorage["currentRow"];
+  if (!currentRow) currentRow = 0;
+  if (!localStorage["todaysWord"]) {
+    const promise = await fetch(dailyWordAPI);
+    const { word: dailyWord } = await promise.json();
+    todaysWord = dailyWord.toUpperCase();
+    localStorage["todaysWord"] = todaysWord;
+    localStorage["words"] = "";
+    localStorage["currentRow"] = 0;
+  } else {
+    if (!localStorage["words"]) {
+      localStorage["words"] = "";
+    }
+    todaysWord = localStorage["todaysWord"];
+  }
 
   async function validateWord(userWord) {
     const promiseValidation = await fetch(validateWordAPI, {
@@ -52,9 +97,28 @@ async function init() {
       }
     }
   }
+  loseGame();
+  function loseGame() {
+    if (count + currentRow >= letterSpaces.length && !lose && !won) {
+      lose = true;
+      resultText.textContent = `You Lose! The word was: ${todaysWord}`;
+      playAgain();
+    }
+  }
+  winGame();
+  function winGame() {
+    if (word === todaysWord && !won) {
+      won = !won;
+      resultText.textContent = "You Won!";
+      playAgain();
+    }
+  }
+
   document.onkeyup = function (e) {
     let limit = false;
     if (won || lose) return;
+    loseGame();
+    winGame();
     if (!isLetter(e.key) && e.key !== "Backspace" && e.key !== "Enter") return;
     if (e.key === "Enter") {
       if (count !== 5) return;
@@ -98,16 +162,7 @@ async function init() {
     let wrongPlaceValue = [];
     let wrongPlace = {};
     if (count < 5) return;
-    if (word === todaysWord && !won) {
-      won = !won;
-      resultText.textContent = "You Won!";
-      playAgain();
-    }
-    if (count + currentRow >= letterSpaces.length && !lose && !won) {
-      lose = true;
-      resultText.textContent = `You Lose! The word was: ${todaysWord}`;
-      playAgain();
-    }
+
     let wordSplit = word.split("");
     let todaysWordSplit = todaysWord.split("");
     let commonLetters = todaysWordSplit.filter((letter) => {
@@ -117,7 +172,6 @@ async function init() {
       if (wordSplit[i] === todaysWordSplit[i]) {
         correctPlace[i + currentRow] = wordSplit[i];
       }
-
       wrongPlaceValue = commonLetters.filter((letter) => {
         if (
           commonLetters.indexOf(letter) !== commonLetters.lastIndexOf(letter)
@@ -156,6 +210,7 @@ async function init() {
       document
         .querySelector(`.element-${wrongplaceKeys[i]}`)
         .classList.add("wrong-place");
+      localStorage["wrongPlace"] += `${wrongplaceKeys[i]} `;
     }
     for (let i = 0; i < correctPlaceKeys.length; i++) {
       document
@@ -164,9 +219,12 @@ async function init() {
       document
         .querySelector(`.element-${correctPlaceKeys[i]}`)
         .classList.add("correct");
+      localStorage["correct"] += `${correctPlaceKeys[i]} `;
     }
     currentRow += 5;
     count = 0;
+    localStorage["words"] += word;
+    localStorage["currentRow"] = currentRow;
     word = "";
     limit = false;
   }
@@ -176,9 +234,11 @@ async function init() {
     playAgainButton.textContent = "Play Again";
     document.body.appendChild(playAgainButton);
     playAgainButton.onclick = refreshPage;
+    return;
   }
 
   function refreshPage() {
+    localStorage.clear();
     return location.reload();
   }
 }
