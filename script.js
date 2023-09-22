@@ -118,10 +118,10 @@ async function init() {
     let limit = false;
     if (won || lose) return;
     loseGame();
-    winGame();
     if (!isLetter(e.key) && e.key !== "Backspace" && e.key !== "Enter") return;
     if (e.key === "Enter") {
       if (count !== 5) return;
+      winGame();
       validateWord(word);
     }
     if (count >= 5) {
@@ -165,9 +165,10 @@ async function init() {
 
     let wordSplit = word.split("");
     let todaysWordSplit = todaysWord.split("");
-    let commonLetters = todaysWordSplit.filter((letter) => {
-      return wordSplit.includes(letter);
+    let commonLetters = wordSplit.filter((letter) => {
+      return todaysWordSplit.includes(letter);
     });
+
     for (let i = 0; i < wordSplit.length; i++) {
       if (wordSplit[i] === todaysWordSplit[i]) {
         correctPlace[i + currentRow] = wordSplit[i];
@@ -176,14 +177,15 @@ async function init() {
         if (
           commonLetters.indexOf(letter) !== commonLetters.lastIndexOf(letter)
         ) {
-          return +Object.keys(correctPlace) === wordSplit.indexOf(letter)
-            ? wordSplit.lastIndexOf(letter) + currentRow
-            : wordSplit.indexOf(letter) + currentRow;
+          Object.keys(correctPlace).map((value) => {
+            if (+value !== wordSplit.indexOf(letter)) {
+              wrongPlaceValue.push(wordSplit.lastIndexOf(letter) + currentRow);
+            }
+          });
         }
         return commonLetters;
       });
     }
-
     for (let i = 0; i < wordSplit.length; i++) {
       let indexFirstOccurrence = wordSplit.indexOf(wrongPlaceValue[i]);
       if (indexFirstOccurrence !== -1) {
