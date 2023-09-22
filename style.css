@@ -65,6 +65,11 @@ header {
   animation: rotateX 0.5s linear forwards;
 }
 
+.wrong-letter {
+  animation: blink 1s;
+  animation-iteration-count: 1;
+}
+
 div.result {
   display: flex;
   width: fit-content;
@@ -174,5 +179,16 @@ button:disabled {
   }
   100% {
     transform: rotateX(360deg);
+  }
+}
+
+@keyframes blink {
+  0% {
+    background-color: red;
+    color: white;
+  }
+  100% {
+    background-color: initial;
+    color: initial;
   }
 }

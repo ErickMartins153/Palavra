@@ -68,7 +68,10 @@ async function init() {
     }
     todaysWord = localStorage["todaysWord"];
   }
-
+  if (localStorage["won"] === "true") {
+    winGame();
+  }
+  console.log(todaysWord);
   async function validateWord(userWord) {
     const promiseValidation = await fetch(validateWordAPI, {
       method: "POST",
@@ -105,13 +108,12 @@ async function init() {
       playAgain();
     }
   }
-  winGame();
+
   function winGame() {
-    if (word === todaysWord && !won) {
-      won = !won;
-      resultText.textContent = "You Won!";
-      playAgain();
-    }
+    localStorage["won"] = "true";
+    resultText.textContent = "You Won!";
+    won = !won;
+    playAgain();
   }
 
   document.onkeyup = function (e) {
@@ -121,7 +123,9 @@ async function init() {
     if (!isLetter(e.key) && e.key !== "Backspace" && e.key !== "Enter") return;
     if (e.key === "Enter") {
       if (count !== 5) return;
-      winGame();
+      if (word === todaysWord && !won) {
+        winGame();
+      }
       validateWord(word);
     }
     if (count >= 5) {
@@ -161,6 +165,7 @@ async function init() {
     let correctPlace = {};
     let wrongPlaceValue = [];
     let wrongPlace = {};
+    const wrongLetters = [];
     if (count < 5) return;
 
     let wordSplit = word.split("");
@@ -168,6 +173,12 @@ async function init() {
     let commonLetters = wordSplit.filter((letter) => {
       return todaysWordSplit.includes(letter);
     });
+    wordSplit.map((letter) => {
+      if (!todaysWordSplit.includes(letter)) {
+        wrongLetters.push(wordSplit.indexOf(letter) + currentRow);
+      }
+    });
+    console.log(wrongLetters);
 
     for (let i = 0; i < wordSplit.length; i++) {
       if (wordSplit[i] === todaysWordSplit[i]) {
@@ -195,9 +206,9 @@ async function init() {
       }
     }
 
-    handleLetters(correctPlace, wrongPlace);
+    handleLetters(correctPlace, wrongPlace, wrongLetters);
   }
-  function handleLetters(correctPlace, wrongPlace) {
+  function handleLetters(correctPlace, wrongPlace, wrongLetters) {
     const correctPlaceKeys = Object.keys(correctPlace);
     const wrongplaceKeys = Object.keys(wrongPlace);
     const letterDivs = document.querySelectorAll(".letter");
@@ -208,7 +219,7 @@ async function init() {
     for (let i = 0; i < wrongplaceKeys.length; i++) {
       document
         .querySelector(`.element-${wrongplaceKeys[i]}`)
-        .classList.remove("invalid", "correct");
+        .classList.remove("invalid", "correct", "wrongLetter");
       document
         .querySelector(`.element-${wrongplaceKeys[i]}`)
         .classList.add("wrong-place");
@@ -217,11 +228,19 @@ async function init() {
     for (let i = 0; i < correctPlaceKeys.length; i++) {
       document
         .querySelector(`.element-${correctPlaceKeys[i]}`)
-        .classList.remove("wrong-place", "invalid");
+        .classList.remove("wrong-place", "invalid", "wrong-letter");
       document
         .querySelector(`.element-${correctPlaceKeys[i]}`)
         .classList.add("correct");
       localStorage["correct"] += `${correctPlaceKeys[i]} `;
+    }
+    for (let i = 0; i < wrongLetters.length; i++) {
+      document
+        .querySelector(`.element-${wrongLetters[i]}`)
+        .classList.remove("wrong-place", "invalid", "correct");
+      document
+        .querySelector(`.element-${wrongLetters[i]}`)
+        .classList.add("wrong-letter");
     }
     currentRow += 5;
     count = 0;
