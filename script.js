@@ -71,7 +71,7 @@ async function init() {
   if (localStorage["won"] === "true") {
     winGame();
   }
-  console.log(todaysWord);
+
   async function validateWord(userWord) {
     const promiseValidation = await fetch(validateWordAPI, {
       method: "POST",
@@ -178,7 +178,6 @@ async function init() {
         wrongLetters.push(wordSplit.indexOf(letter) + currentRow);
       }
     });
-    console.log(wrongLetters);
 
     for (let i = 0; i < wordSplit.length; i++) {
       if (wordSplit[i] === todaysWordSplit[i]) {
