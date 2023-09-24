@@ -1,5 +1,9 @@
 async function init() {
   const wordsDashboard = document.querySelector(".words-dashboard");
+  const mobileInput = document.getElementById("mobileInput");
+  wordsDashboard.addEventListener("click", function () {
+    mobileInput.focus();
+  });
   let previousCorrect = "";
   let previousWrong = "";
 
